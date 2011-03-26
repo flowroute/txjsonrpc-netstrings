@@ -1,7 +1,7 @@
 from twisted.protocols.basic import NetstringReceiver
 from twisted.internet import defer, reactor
 import jsonrpclib
-import simplejson
+import json
 from twisted.python import log
 import logging
 
@@ -14,6 +14,8 @@ class Protocol(NetstringReceiver):
         '''Overrid these instance variables to set callbacks on connect and disconnect'''
         self.onConnect = onConnect
         self.onDisconnect = onDisconnect
+        if not hasattr(self, 'encoder'):
+            self.encoder = jsonrpclib.JsonRpcEncoder
         
     def connectionMade(self):
         # if hasattr(self.transport, 'hostname'):
@@ -34,7 +36,7 @@ class Protocol(NetstringReceiver):
             
             try:
                 obj = jsonrpclib.load_string(string)
-            except simplejson.decoder.JSONDecodeError:
+            except json.decoder.JSONDecodeError:
                 raise jsonrpclib.JsonRpcParseError()
             
             if not 'jsonrpc' in obj or obj['jsonrpc'] != '2.0':
@@ -67,7 +69,7 @@ class Protocol(NetstringReceiver):
             if not isinstance(error, jsonrpclib.JsonRpcClientError):
                 self.errorReady(error, message_id)
           
-        if 'error' in obj:
+        if 'error' in obj and obj['error'] is not None:
             # Client got error back
             code, message = obj["error"]['code'], obj["error"]['message']
             #logging.error('* Error (%s): %s' % (code, message))
@@ -81,11 +83,11 @@ class Protocol(NetstringReceiver):
             
     def sendRequest(self, method, params={}):
         """This method is used as a client sending a request to a server"""
-        req_id = self.id
+        req_id = str(self.id)
         self.id += 1
         if self.id > 65000:
             self.id = 1
-        string = jsonrpclib.dump_request(method, params, req_id)
+        string = jsonrpclib.dump_request(method, params, req_id, encoder=self.encoder)
         
         if len(string) > self.MAX_LENGTH:
             raise jsonrpclib.JsonRpcTooBigError()
@@ -98,7 +100,7 @@ class Protocol(NetstringReceiver):
 
     def responseReady(self, result, req_id):
         '''This is called when the server wants to respond to a request'''
-        string = jsonrpclib.dump_response(result, req_id)
+        string = jsonrpclib.dump_response(result, req_id, encoder=self.encoder)
         
         if len(string) > self.MAX_LENGTH:
             self.errorReady(jsonrpclib.JsonRpcTooBigError(), req_id)
