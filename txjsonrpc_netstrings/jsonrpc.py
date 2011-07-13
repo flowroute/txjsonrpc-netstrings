@@ -46,18 +46,20 @@ class Protocol(NetstringReceiver):
                 message_id = obj['id']
         
             if 'method' in obj:
-                method, params, message_id = obj["method"], obj["params"], obj["id"]
+                method, params = obj["method"], obj["params"] 
                 if hasattr(self, '_getFunction'):
                     f = self._getFunction(method)
                     d = defer.maybeDeferred(f, params)
-                    d.addCallback(self.responseReady, message_id)
-                    d.addErrback(self.internalError, message_id)
+                    if message_id:
+                        d.addCallback(self.responseReady, message_id)
+                        d.addErrback(self.internalError, message_id)
                 else:
                     logging.debug('** Client Got Request **')
                     logging.debug('%s - %s' % (method, params))
                     d = defer.Deferred()
-                    d.addCallback(self.responseReady, message_id)
-                    reactor.callLater(0, d.callback, 'ok')
+                    if message_id:
+                        d.addCallback(self.responseReady, message_id)
+                        reactor.callLater(0, d.callback, 'ok')
             elif 'result' in obj:
                 # Client got result back
                 result, message_id = obj["result"], obj["id"]
