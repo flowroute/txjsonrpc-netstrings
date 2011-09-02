@@ -9,13 +9,16 @@ class Protocol(NetstringReceiver):
     requests = {}
     id = 1
     MAX_LENGTH = 10 * 1024 * 1024 # 10MB
+    
+    encoder = json.JSONEncoder
+    object_hook = None
+    parse_int = int
+    parse_float = float
 
     def __init__(self, onConnect=None, onDisconnect=None):
         '''Override these instance variables to set callbacks on connect and disconnect'''
         self.onConnect = onConnect
         self.onDisconnect = onDisconnect
-        if not hasattr(self, 'encoder'):
-            self.encoder = jsonrpclib.JsonRpcEncoder
         
     def connectionMade(self):
         # if hasattr(self.transport, 'hostname'):
@@ -35,7 +38,7 @@ class Protocol(NetstringReceiver):
                 raise jsonrpclib.JsonRpcTooBigError()
             
             try:
-                obj = jsonrpclib.load_string(string)
+                obj = json.loads(string, object_hook=self.object_hook, parse_float=self.parse_float, parse_int=self.parse_int)
             except:
                 raise jsonrpclib.JsonRpcParseError()
             
