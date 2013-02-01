@@ -2,10 +2,10 @@
 
 from setuptools import setup
 setup(
-    name='txJsonRpc-Netstrings',
-    version='0.2.1-flowroute',
-    description='Lightweight json-rpc library for building Twisted-based TCP (Netstring) clients and servers',
-    author='TelTech Systems, Flowroute',
-    url='http://github.com/mgwilliams/txJsonRpc-Netstrings',
-    packages=['txjsonrpc_netstrings']
+    name='txjsonrpc2',
+    version='0.3.0',
+    description='json-rpc 2.0 library for Twisted.',
+    author='Flowroute LLC',
+    url='http://github.com/flowroute/txjsonrpc2',
+    packages=['txjsonrpc2']
 )

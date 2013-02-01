@@ -1,10 +1,10 @@
-txJsonRpc-Netstrings
+txjsonrpc2
 ========
 
 Description
 -----------
 
-txJsonRpc-Netstrings is a Lightweight json-rpc library for building TCP (Netstring) clients and servers.
+A jsonrpc 2.0 library for Twisted.
 
 Installation
 ------------
